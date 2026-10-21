@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ταμείο Σπιτιού</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0E6B62">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ταμείο">
+<style>
+:root{
+  --bg:#EEF1F3; --surface:#FFFFFF; --surface-2:#F6F8F9;
+  --ink:#16202A; --muted:#5E6E7C; --line:#DCE3E8;
+  --accent:#0E6B62; --accent-soft:#DCEDEA;
+  --good:#1B7A53; --warn:#A8491B; --warn-bg:#F6E3D8;
+  --font-display:ui-serif,Georgia,"Times New Roman",serif;
+  --font-body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#101720; --surface:#1A232D; --surface-2:#212C37;
+  --ink:#E7EDF2; --muted:#9AA9B6; --line:#2D3945;
+  --accent:#4FB7AA; --accent-soft:#17352F;
+  --good:#5BC08E; --warn:#E39060; --warn-bg:#3A2418; color-scheme:dark;
+}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+img{max-width:100%}
+[hidden]{display:none!important}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px;max-width:720px;margin:0 auto}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance}
+.num{font-family:var(--font-display);font-variant-numeric:tabular-nums}
+
+header.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px}
+.bar-in{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-size:17px;font-weight:600;letter-spacing:.2px;flex:1;min-width:0}
+.saving{font-size:12px;color:var(--muted);min-height:1em}
+
+select,input{font-family:inherit;font-size:16px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#month{font-family:var(--font-display);font-weight:600;background:var(--accent-soft);border-color:transparent;color:var(--ink)}
+
+nav.tabs{display:flex;gap:4px;margin:16px 0 14px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:4px}
+nav.tabs button{flex:1;min-width:0;border:0;background:transparent;color:var(--muted);font-family:var(--font-body);font-size:14px;font-weight:600;padding:9px 4px;border-radius:7px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.hero div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
+.hero span{display:block;font-size:12px;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
+.hero strong{display:block;font-family:var(--font-display);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:4px}
+.hero em{display:block;font-style:normal;font-size:12px;color:var(--muted);margin-top:2px}
+
+section.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+section.card>h2{font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.row{display:flex;align-items:baseline;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row .lbl{flex:1;min-width:0;font-size:14px}
+.row .val{font-family:var(--font-display);font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.row.sum{border-top:1px solid var(--ink);margin-top:4px;padding-top:9px}
+.row.sum .lbl{font-weight:600}
+.row.key .val{color:var(--accent);font-size:19px}
+.row .hint{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.pill{display:inline-block;font-size:13px;font-weight:600;padding:5px 10px;border-radius:999px;margin-top:10px}
+.pill.ok{background:var(--accent-soft);color:var(--good)}
+.pill.no{background:var(--warn-bg);color:var(--warn)}
+
+.grp{margin-bottom:12px}
+.grp h3{font-size:13px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;gap:8px;padding:0 2px 6px}
+.grp h3 b{font-family:var(--font-display);color:var(--ink);font-variant-numeric:tabular-nums}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px}
+.item .top{display:flex;align-items:center;gap:8px}
+.item input.name{flex:1;min-width:0;border:0;background:transparent;padding:4px 0;font-size:15px}
+.item input.amt{width:86px;text-align:right;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-weight:600;padding:6px 8px}
+.item button.more{border:0;background:transparent;color:var(--muted);font-size:18px;line-height:1;padding:6px;cursor:pointer;border-radius:6px}
+.detail{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:9px;margin-top:7px;border-top:1px solid var(--line)}
+.detail label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block}
+.detail select{width:100%;margin-top:3px;padding:7px 8px;font-size:14px}
+.detail .del{grid-column:1/-1;border:1px solid var(--line);background:transparent;color:var(--warn);font-family:inherit;font-size:14px;font-weight:600;padding:9px;border-radius:8px;cursor:pointer}
+button.add{width:100%;border:1px dashed var(--line);background:transparent;color:var(--accent);font-family:inherit;font-size:15px;font-weight:600;padding:12px;border-radius:10px;cursor:pointer}
+
+.field{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.field:first-of-type{border-top:0}
+.field label{flex:1;min-width:0;font-size:14px}
+.field input{width:110px;text-align:right;font-family:var(--font-display);font-variant-numeric:tabular-nums;font-weight:600}
+.field .sub{display:block;font-size:12px;color:var(--muted)}
+button.link{border:0;background:transparent;color:var(--accent);font:inherit;font-size:13px;font-weight:600;padding:6px 0;cursor:pointer;text-decoration:underline}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+.note code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.status{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;margin:0 0 10px}
+.status::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.status.on::before{background:var(--good)}
+.status.busy::before{background:var(--warn)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button,.actions label{flex:1;min-width:140px;text-align:center;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);font:inherit;font-size:14px;font-weight:600;padding:11px;border-radius:9px;cursor:pointer}
+#install{background:var(--accent);color:#fff;border-color:transparent}
+.empty{text-align:center;padding:36px 16px}
+.empty h2{font-size:19px;margin-bottom:8px}
+.empty p{color:var(--muted);font-size:15px;margin:0 auto 16px;max-width:38ch}
+.empty button{border:0;background:var(--accent);color:#fff;font:inherit;font-weight:600;font-size:15px;padding:12px 20px;border-radius:10px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header class="bar"><div class="bar-in">
+  <h1>Ταμείο Σπιτιού</h1>
+  <span class="saving" id="saving"></span>
+  <select id="month" aria-label="Μήνας"></select>
+</div></header>
+
+<div class="wrap">
+  <div id="app" hidden>
+    <div class="hero">
+      <div><span>Μισθοδοσίας</span><strong class="num" id="h-mis">—</strong><em id="h-mis-s"></em></div>
+      <div><span>Αποταμιευτικός</span><strong class="num" id="h-apo">—</strong><em id="h-apo-s"></em></div>
+    </div>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" id="t-sum" aria-selected="true" aria-controls="p-sum">Σύνοψη</button>
+      <button role="tab" id="t-exp" aria-selected="false" aria-controls="p-exp">Έξοδα</button>
+      <button role="tab" id="t-inc" aria-selected="false" aria-controls="p-inc">Έσοδα</button>
+    </nav>
+
+    <div id="p-sum" role="tabpanel" aria-labelledby="t-sum">
+      <section class="card"><h2>Λογαριασμός μισθοδοσίας</h2><div id="mis"></div></section>
+      <section class="card"><h2>Αποταμιευτικός λογαριασμός</h2><div id="apo"></div></section>
+      <section class="card"><h2>Συνολική εικόνα</h2><div id="ovw"></div></section>
+    </div>
+
+    <div id="p-exp" role="tabpanel" aria-labelledby="t-exp" hidden>
+      <div id="groups"></div>
+      <button class="add" id="addRow">+ Νέο έξοδο</button>
+    </div>
+
+    <div id="p-inc" role="tabpanel" aria-labelledby="t-inc" hidden>
+      <section class="card"><h2>Έσοδα μήνα</h2><div id="inc"></div></section>
+      <section class="card"><h2>Αποταμίευση</h2><div id="sav"></div></section>
+      <section class="card"><h2>Google Drive</h2>
+        <p class="status" id="gStatus">Μη συνδεδεμένο</p>
+        <div class="actions">
+          <button type="button" id="gSignin">Σύνδεση με Google</button>
+          <button type="button" id="gSync" hidden>Συγχρονισμός τώρα</button>
+          <button type="button" id="gSignout" hidden>Αποσύνδεση</button>
+        </div>
+        <p class="note" id="gNote">Με τη σύνδεση, οι μήνες αποθηκεύονται και στο Drive σου, σε αρχείο <code>tameio-data.json</code>. Κάθε συσκευή κρατά το δικό της αντίγραφο και συγχρονίζεται με το Drive· σε διαφωνία κερδίζει η πιο πρόσφατη αλλαγή κάθε μήνα.</p>
+      </section>
+
+      <section class="card"><h2>Δεδομένα</h2>
+        <div class="actions">
+          <button type="button" id="install" hidden>Εγκατάσταση εφαρμογής</button>
+          <button type="button" id="export">Εξαγωγή αντιγράφου</button>
+          <label for="importFile">Εισαγωγή αρχείου<input type="file" id="importFile" accept="application/json,.json" hidden></label>
+        </div>
+        <p class="note" id="dataNote">Τα δεδομένα μένουν σε αυτή τη συσκευή. Κράτα αντίγραφο πριν αλλάξεις κινητό, και χρησιμοποίησε την εισαγωγή για να τα περάσεις αλλού.</p>
+      </section>
+    </div>
+  </div>
+
+  <div id="empty" class="empty" hidden>
+    <h2>Κανένας μήνας ακόμη</h2>
+    <p>Φτιάξε τον πρώτο μήνα και πρόσθεσε έξοδα, έσοδα και στόχο αποταμίευσης. Οι επόμενοι μήνες θα αντιγράφονται από αυτόν.</p>
+    <button id="create">Δημιουργία μήνα</button>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+(function(){
+"use strict";
+var KEY="tameio.v1";
+var MONTHS=["Ιανουάριος","Φεβρουάριος","Μάρτιος","Απρίλιος","Μάιος","Ιούνιος","Ιούλιος","Αύγουστος","Σεπτέμβριος","Οκτώβριος","Νοέμβριος","Δεκέμβριος"];
+var CATS=["Στέγαση","Παιδιά","Λογαριασμοί σπιτιού","Διατροφή","Προσωπικά","Λοιπά"];
+var TYPES=["Σταθερό","Μεταβλητό"];
+var PAYERS=["Εγώ","Χρυσούλα"];
+var ACCTS=["Μισθοδοσίας","Αποταμιευτικός","Οικογενειακός","Χρυσούλας"];
+var eur=new Intl.NumberFormat("el-GR",{style:"currency",currency:"EUR",minimumFractionDigits:0,maximumFractionDigits:0});
+function f(n){return eur.format(Math.round(n||0));}
+function el(id){return document.getElementById(id);}
+function label(id){var p=id.split("-");return MONTHS[+p[1]-1]+" "+p[0];}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+
+var SEED={salary:1900,rent:560,loan1:630,loan2:170,target:260,transfer:null,rows:[
+ {id:"r1",desc:"Δόση στεγαστικού δανείου",cat:"Στέγαση",type:"Σταθερό",amount:440,payer:"Εγώ",account:"Μισθοδοσίας"},
+ {id:"r2",desc:"Κινητά αγοριών",cat:"Παιδιά",type:"Σταθερό",amount:40,payer:"Εγώ",account:"Μισθοδοσίας"},
+ {id:"r3",desc:"Χαρτζιλίκι αγοριών",cat:"Παιδιά",type:"Σταθερό",amount:100,payer:"Εγώ",account:"Μισθοδοσίας"},
+ {id:"r4",desc:"Φροντιστήριο – Τηλέμαχος",cat:"Παιδιά",type:"Σταθερό",amount:300,payer:"Εγώ",account:"Αποταμιευτικός"},
+ {id:"r5",desc:"Αγγλικά – Γιώργος",cat:"Παιδιά",type:"Σταθερό",amount:150,payer:"Εγώ",account:"Αποταμιευτικός"},
+ {id:"r6",desc:"Ποδόσφαιρο – Γιώργος",cat:"Παιδιά",type:"Σταθερό",amount:40,payer:"Εγώ",account:"Αποταμιευτικός"},
+ {id:"r7",desc:"Συνδρομές",cat:"Προσωπικά",type:"Σταθερό",amount:50,payer:"Εγώ",account:"Αποταμιευτικός"},
+ {id:"r8",desc:"Νερό",cat:"Λογαριασμοί σπιτιού",type:"Σταθερό",amount:20,payer:"Χρυσούλα",account:"Οικογενειακός"},
+ {id:"r9",desc:"Ρεύμα",cat:"Λογαριασμοί σπιτιού",type:"Σταθερό",amount:100,payer:"Χρυσούλα",account:"Οικογενειακός"},
+ {id:"r10",desc:"Καθαριότητα",cat:"Λογαριασμοί σπιτιού",type:"Σταθερό",amount:100,payer:"Χρυσούλα",account:"Οικογενειακός"},
+ {id:"r11",desc:"Κοινόχρηστα",cat:"Λογαριασμοί σπιτιού",type:"Σταθερό",amount:100,payer:"Χρυσούλα",account:"Χρυσούλας"},
+ {id:"r12",desc:"Τηλέφωνο",cat:"Λογαριασμοί σπιτιού",type:"Σταθερό",amount:30,payer:"Χρυσούλα",account:"Χρυσούλας"},
+ {id:"r13",desc:"Σούπερ μάρκετ",cat:"Διατροφή",type:"Μεταβλητό",amount:0,payer:"Εγώ",account:"Μισθοδοσίας"},
+ {id:"r14",desc:"Καθημερινά δικά μου έξοδα",cat:"Προσωπικά",type:"Μεταβλητό",amount:0,payer:"Εγώ",account:"Μισθοδοσίας"},
+ {id:"r15",desc:"Έξτρα / απρόβλεπτα έξοδα",cat:"Λοιπά",type:"Μεταβλητό",amount:0,payer:"Εγώ",account:"Μισθοδοσίας"}]};
+
+var months={},cur=null,data=null,open={},saveT=null,dirty=false,totalEls={},incUI=null;
+
+/* ---------- Google Drive ---------- */
+var drive=(function(){
+  var FILE="tameio-data.json";
+  var SCOPE="https://www.googleapis.com/auth/drive.file";
+  var FLAG="tameio.google";
+  var token=null,expires=0,fileId=null,client=null,timer=null,running=false;
+
+  function cid(){return (window.TAMEIO_CONFIG&&window.TAMEIO_CONFIG.GOOGLE_CLIENT_ID)||"";}
+  function wanted(){try{return localStorage.getItem(FLAG)==="1";}catch(e){return false;}}
+  function want(v){try{v?localStorage.setItem(FLAG,"1"):localStorage.removeItem(FLAG);}catch(e){}}
+
+  function status(text,cls){
+    var s=el("gStatus");if(!s)return;
+    s.textContent=text;s.className="status"+(cls?" "+cls:"");
+    el("gSignin").hidden=!!wanted();
+    el("gSync").hidden=!wanted();
+    el("gSignout").hidden=!wanted();
+  }
+
+  function ready(){return typeof google!=="undefined"&&google.accounts&&google.accounts.oauth2;}
+
+  function auth(interactive){
+    return new Promise(function(res,rej){
+      if(!cid())return rej(new Error("no-client-id"));
+      if(!ready())return rej(new Error("gsi-not-loaded"));
+      if(token&&Date.now()<expires-60000)return res(token);
+      if(!client){
+        client=google.accounts.oauth2.initTokenClient({client_id:cid(),scope:SCOPE,callback:function(){}});
+      }
+      client.callback=function(r){
+        if(r&&r.access_token){token=r.access_token;expires=Date.now()+((+r.expires_in||3600)*1000);res(token);}
+        else rej(new Error((r&&r.error)||"no-token"));
+      };
+      client.error_callback=function(e){rej(new Error((e&&e.type)||"auth-failed"));};
+      try{client.requestAccessToken({prompt:interactive?"consent":""});}catch(e){rej(e);}
+    });
+  }
+
+  function api(url,opts){
+    opts=opts||{};opts.headers=opts.headers||{};
+    opts.headers.Authorization="Bearer "+token;
+    return fetch(url,opts).then(function(r){
+      if(r.status===401){token=null;throw new Error("expired");}
+      if(!r.ok)throw new Error("http-"+r.status);
+      return r;
+    });
+  }
+
+  function find(){
+    if(fileId)return Promise.resolve(fileId);
+    var q=encodeURIComponent("name='"+FILE+"' and trashed=false");
+    return api("https://www.googleapis.com/drive/v3/files?spaces=drive&fields=files(id,modifiedTime)&q="+q)
+      .then(function(r){return r.json();})
+      .then(function(j){fileId=(j.files&&j.files[0]&&j.files[0].id)||null;return fileId;});
+  }
+
+  function pull(){
+    return find().then(function(id){
+      if(!id)return null;
+      return api("https://www.googleapis.com/drive/v3/files/"+id+"?alt=media")
+        .then(function(r){return r.json();}).catch(function(){return null;});
+    });
+  }
+
+  function push(){
+    var body=JSON.stringify({v:1,months:months,savedAt:Date.now()});
+    if(fileId){
+      return api("https://www.googleapis.com/upload/drive/v3/files/"+fileId+"?uploadType=media",
+        {method:"PATCH",headers:{"Content-Type":"application/json"},body:body});
+    }
+    var boundary="tameio"+Date.now();
+    var meta={name:FILE,mimeType:"application/json",description:"Δεδομένα της εφαρμογής Ταμείο Σπιτιού"};
+    var multipart="--"+boundary+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+
+      JSON.stringify(meta)+"\r\n--"+boundary+"\r\nContent-Type: application/json\r\n\r\n"+body+"\r\n--"+boundary+"--";
+    return api("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
+      {method:"POST",headers:{"Content-Type":"multipart/related; boundary="+boundary},body:multipart})
+      .then(function(r){return r.json();}).then(function(j){fileId=j.id;});
+  }
+
+  function merge(remote){
+    var changed=false;
+    Object.keys(remote||{}).forEach(function(k){
+      if(!/^\d{4}-\d{2}$/.test(k))return;
+      var r=remote[k],l=months[k];
+      if(!l||(+(r&&r.updatedAt)||0)>(+(l&&l.updatedAt)||0)){months[k]=r;changed=true;}
+    });
+    return changed;
+  }
+
+  function sync(interactive){
+    if(running)return Promise.resolve();
+    if(!cid()){status("Λείπει το Client ID στο config.js","");return Promise.resolve();}
+    if(!navigator.onLine){status("Εκτός σύνδεσης — θα συγχρονιστεί αργότερα","");return Promise.resolve();}
+    running=true;status("Συγχρονισμός…","busy");
+    return auth(interactive)
+      .then(pull)
+      .then(function(remote){
+        var changed=remote?merge(remote.months||remote):false;
+        if(changed){
+          try{localStorage.setItem(KEY,JSON.stringify({v:1,months:months}));}catch(e){}
+          fillMonths();
+          if(!document.activeElement||["INPUT","SELECT"].indexOf(document.activeElement.tagName)<0){
+            var keep=cur;cur=null;pick(keep||el("month").value);
+          }
+        }
+        return push();
+      })
+      .then(function(){
+        want(true);
+        status("Συγχρονισμένο — "+new Date().toLocaleTimeString("el-GR",{hour:"2-digit",minute:"2-digit"}),"on");
+      })
+      .catch(function(e){
+        var m=String(e&&e.message||e);
+        if(m==="no-client-id")status("Λείπει το Client ID στο config.js","");
+        else if(m==="gsi-not-loaded")status("Η σύνδεση Google δεν φόρτωσε","");
+        else if(m==="expired"){token=null;status("Η σύνδεση έληξε — πάτα «Σύνδεση με Google»","");}
+        else if(!wanted())status("Μη συνδεδεμένο","");
+        else status("Ο συγχρονισμός απέτυχε — δοκίμασε ξανά","");
+      })
+      .then(function(){running=false;});
+  }
+
+  return {
+    status:status,
+    init:function(){
+      status(wanted()?"Σύνδεση…":"Μη συνδεδεμένο",wanted()?"busy":"");
+      if(wanted())setTimeout(function(){sync(false);},1200);
+    },
+    connect:function(){want(true);return sync(true);},
+    sync:function(){return sync(false);},
+    disconnect:function(){
+      if(token&&ready()&&google.accounts.oauth2.revoke){try{google.accounts.oauth2.revoke(token);}catch(e){}}
+      token=null;expires=0;fileId=null;want(false);status("Μη συνδεδεμένο","");
+    },
+    schedule:function(){
+      if(!wanted())return;
+      clearTimeout(timer);timer=setTimeout(function(){sync(false);},4000);
+    }
+  };
+})();
+
+function blank(){return{salary:0,rent:0,loan1:0,loan2:0,target:0,transfer:null,rows:[]};}
+function norm(d){var b=blank();if(!d)return b;
+  ["salary","rent","loan1","loan2","target"].forEach(function(k){b[k]=+d[k]||0;});
+  b.transfer=(d.transfer===null||d.transfer===undefined||d.transfer==="")?null:+d.transfer;
+  b.rows=(Array.isArray(d.rows)?d.rows:[]).map(function(r,i){return{
+    id:String(r&&r.id||("r"+i+"_"+Math.random().toString(36).slice(2,7))),
+    desc:String(r&&r.desc||""),cat:CATS.indexOf(r&&r.cat)>-1?r.cat:"Λοιπά",
+    type:TYPES.indexOf(r&&r.type)>-1?r.type:"Σταθερό",
+    amount:+(r&&r.amount)||0,
+    payer:PAYERS.indexOf(r&&r.payer)>-1?r.payer:"Εγώ",
+    account:ACCTS.indexOf(r&&r.account)>-1?r.account:"Μισθοδοσίας"};});
+  return b;}
+
+function load(){
+  var raw=null;
+  try{raw=localStorage.getItem(KEY);}catch(e){raw=null;}
+  if(raw){try{var o=JSON.parse(raw);if(o&&o.months)return o.months;}catch(e){}}
+  var m={},now=new Date();
+  m[now.getFullYear()+"-"+(now.getMonth()<9?"0":"")+(now.getMonth()+1)]=clone(SEED);
+  return m;
+}
+function persist(){
+  if(cur&&data){var o=clone(data);o.updatedAt=Date.now();months[cur]=o;}
+  try{localStorage.setItem(KEY,JSON.stringify({v:1,months:months}));
+    el("saving").textContent="Αποθηκεύτηκε";
+    setTimeout(function(){if(el("saving").textContent==="Αποθηκεύτηκε")el("saving").textContent="";},1500);
+  }catch(e){el("saving").textContent="Δεν αποθηκεύτηκε";}
+  dirty=false;
+  drive.schedule();
+}
+function scheduleSave(){dirty=true;clearTimeout(saveT);saveT=setTimeout(persist,500);}
+
+function sum(fn){return data.rows.reduce(function(a,r){return a+(fn(r)?(+r.amount||0):0);},0);}
+function calc(){
+  var d=data;
+  var fixMis=sum(function(r){return r.type==="Σταθερό"&&r.account==="Μισθοδοσίας";});
+  var varMis=sum(function(r){return r.type==="Μεταβλητό"&&r.account==="Μισθοδοσίας";});
+  var fixApo=sum(function(r){return r.type==="Σταθερό"&&r.account==="Αποταμιευτικός";});
+  var varApo=sum(function(r){return r.type==="Μεταβλητό"&&r.account==="Αποταμιευτικός";});
+  var mother=d.loan1+d.loan2, income=d.salary+d.rent;
+  var apoBefore=mother-fixApo-varApo;
+  var need=Math.max(0,d.target-apoBefore);
+  var tr=(d.transfer===null)?need:d.transfer;
+  return{fixMis:fixMis,varMis:varMis,fixApo:fixApo,varApo:varApo,mother:mother,income:income,
+    apoBefore:apoBefore,need:need,tr:tr,misEnd:income-fixMis-mother-varMis-tr,apoNet:apoBefore+tr,
+    mine:sum(function(r){return r.payer==="Εγώ";}),hers:sum(function(r){return r.payer==="Χρυσούλα";}),
+    all:sum(function(){return true;}),fam:sum(function(r){return r.account==="Οικογενειακός";})};
+}
+
+function line(host,lbl,val,opt){opt=opt||{};
+  var d=document.createElement("div");d.className="row"+(opt.sum?" sum":"")+(opt.key?" key":"");
+  var a=document.createElement("div");a.className="lbl";a.textContent=lbl;
+  if(opt.hint){var h=document.createElement("span");h.className="hint";h.textContent=opt.hint;a.appendChild(h);}
+  var b=document.createElement("div");b.className="val";b.textContent=f(val);
+  d.appendChild(a);d.appendChild(b);host.appendChild(d);}
+function pill(host,ok,text){var p=document.createElement("div");p.className="pill "+(ok?"ok":"no");p.textContent=text;host.appendChild(p);}
+
+function renderSummary(c){
+  var m=el("mis");m.textContent="";
+  line(m,"Μισθός",data.salary);line(m,"Ενοίκιο",data.rent);
+  line(m,"Έσοδα μισθοδοσίας",c.income,{sum:true});
+  line(m,"Σταθερά έξοδα",-c.fixMis);line(m,"Δόσεις δανείων μητέρας",-c.mother,{hint:"Σου επιστρέφονται στον αποταμιευτικό"});
+  line(m,"Μεταβλητά έξοδα",-c.varMis);line(m,"Μεταφορά στον αποταμιευτικό",-c.tr);
+  line(m,"Υπόλοιπο τέλους μήνα",c.misEnd,{sum:true,key:true});
+  pill(m,c.misEnd>=0,c.misEnd>=0?"Ο λογαριασμός βγαίνει":"Τα έσοδα δεν καλύπτουν τον μήνα");
+
+  var a=el("apo");a.textContent="";
+  line(a,"Επιστροφή δόσεων από μητέρα",c.mother);
+  line(a,"Σταθερά έξοδα",-c.fixApo);line(a,"Μεταβλητά έξοδα",-c.varApo);
+  line(a,"Υπόλοιπο χωρίς μεταφορά",c.apoBefore,{sum:true});
+  line(a,"Μεταφορά από τον μισθοδοσίας",c.tr,{hint:c.need===0?"Δεν χρειάζεται μεταφορά αυτόν τον μήνα":"Χρειάζονται "+f(c.need)+" για τον στόχο"});
+  line(a,"Καθαρή αύξηση",c.apoNet,{sum:true,key:true});
+  line(a,"Στόχος",data.target);
+  pill(a,c.apoNet>=data.target,c.apoNet>=data.target?"Ο στόχος καλύπτεται":"Ο στόχος δεν καλύπτεται");
+
+  var o=el("ovw");o.textContent="";
+  line(o,"Έσοδά μου",c.income,{hint:"Οι δόσεις της μητέρας δεν είναι έσοδο"});
+  line(o,"Έξοδα που πληρώνω εγώ",c.mine);
+  line(o,"Έξοδα που πληρώνει η Χρυσούλα",c.hers);
+  line(o,"Σύνολο εξόδων σπιτιού",c.all,{sum:true});
+  line(o,"Έξοδα από τον οικογενειακό",c.fam);
+}
+
+function sel(opts,val,on){var s=document.createElement("select");
+  opts.forEach(function(o){var op=document.createElement("option");op.value=o;op.textContent=o;s.appendChild(op);});
+  s.value=val;s.addEventListener("change",function(){on(s.value);});return s;}
+
+function accTotal(acc){return data.rows.reduce(function(a,r){return a+(r.account===acc?(+r.amount||0):0);},0);}
+function updateTotals(){ACCTS.forEach(function(acc){if(totalEls[acc])totalEls[acc].textContent=f(accTotal(acc));});}
+
+function renderRows(){
+  var host=el("groups");host.textContent="";totalEls={};
+  ACCTS.forEach(function(acc){
+    var rows=data.rows.filter(function(r){return r.account===acc;});
+    if(!rows.length)return;
+    var g=document.createElement("div");g.className="grp";
+    var h=document.createElement("h3");h.textContent=acc;
+    var b=document.createElement("b");b.textContent=f(accTotal(acc));totalEls[acc]=b;
+    h.appendChild(b);g.appendChild(h);
+    rows.forEach(function(r){g.appendChild(rowCard(r));});
+    host.appendChild(g);
+  });
+}
+
+function rowCard(r){
+  var it=document.createElement("div");it.className="item";
+  var top=document.createElement("div");top.className="top";
+  var n=document.createElement("input");n.className="name";n.type="text";n.value=r.desc;n.id="n_"+r.id;
+  n.setAttribute("aria-label","Περιγραφή");
+  n.addEventListener("input",function(){r.desc=n.value;scheduleSave();});
+  var a=document.createElement("input");a.className="amt";a.type="number";a.inputMode="decimal";a.min="0";a.step="1";
+  a.value=r.amount;a.id="a_"+r.id;a.setAttribute("aria-label","Ποσό");
+  a.addEventListener("input",function(){r.amount=+a.value||0;touch(false);});
+  var mb=document.createElement("button");mb.className="more";mb.type="button";
+  mb.setAttribute("aria-label","Λεπτομέρειες");
+  top.appendChild(n);top.appendChild(a);top.appendChild(mb);it.appendChild(top);
+
+  var d=document.createElement("div");d.className="detail";d.hidden=!open[r.id];
+  [["Λογαριασμός",ACCTS,"account"],["Πληρώνει",PAYERS,"payer"],["Κατηγορία",CATS,"cat"],["Τύπος",TYPES,"type"]]
+  .forEach(function(spec){
+    var w=document.createElement("div");var l=document.createElement("label");l.textContent=spec[0];
+    w.appendChild(l);
+    w.appendChild(sel(spec[1],r[spec[2]],function(v){r[spec[2]]=v;touch(spec[2]==="account");}));
+    d.appendChild(w);
+  });
+  var del=document.createElement("button");del.className="del";del.type="button";del.textContent="Διαγραφή εξόδου";
+  del.addEventListener("click",function(){
+    data.rows=data.rows.filter(function(x){return x!==r;});delete open[r.id];touch(true);});
+  d.appendChild(del);it.appendChild(d);
+  mb.addEventListener("click",function(){open[r.id]=!open[r.id];d.hidden=!open[r.id];mb.textContent=open[r.id]?"⌃":"⌄";});
+  mb.textContent=open[r.id]?"⌃":"⌄";
+  return it;
+}
+
+function field(host,lbl,key,hint){
+  var w=document.createElement("div");w.className="field";
+  var l=document.createElement("label");l.textContent=lbl;l.htmlFor="f_"+key;
+  if(hint){var s=document.createElement("span");s.className="sub";s.textContent=hint;l.appendChild(s);}
+  var i=document.createElement("input");i.type="number";i.inputMode="decimal";i.step="1";i.id="f_"+key;
+  i.value=data[key];
+  i.addEventListener("input",function(){data[key]=+i.value||0;touch(false);});
+  w.appendChild(l);w.appendChild(i);host.appendChild(w);
+}
+
+function renderInputs(c){
+  var h=el("inc");h.textContent="";
+  field(h,"Μισθός","salary","Καθαρά, ανά μήνα");
+  field(h,"Ενοίκιο","rent","Μπαίνει στον μισθοδοσίας");
+  field(h,"Δόση δανείου μητέρας","loan1","Την πληρώνεις και σου επιστρέφεται");
+  field(h,"Δόση καταναλωτικού μητέρας","loan2");
+
+  var s=el("sav");s.textContent="";
+  field(s,"Στόχος αποταμίευσης","target","Πόσα θέλεις να μένουν κάθε μήνα");
+  var w=document.createElement("div");w.className="field";
+  var l=document.createElement("label");l.textContent="Μεταφορά στον αποταμιευτικό";l.htmlFor="f_transfer";
+  var sb=document.createElement("span");sb.className="sub";
+  sb.textContent=data.transfer===null?"Αυτόματα: "+f(c.need):"Δικό σου ποσό (αυτόματο: "+f(c.need)+")";
+  l.appendChild(sb);
+  var i=document.createElement("input");i.type="number";i.inputMode="decimal";i.step="1";i.id="f_transfer";i.value=c.tr;
+  i.addEventListener("input",function(){data.transfer=i.value===""?null:(+i.value||0);touch(false);});
+  w.appendChild(l);w.appendChild(i);s.appendChild(w);
+  var b=document.createElement("button");b.className="link";b.type="button";b.textContent="Επαναφορά στο αυτόματο ποσό";
+  b.hidden=(data.transfer===null);
+  b.addEventListener("click",function(){data.transfer=null;touch(true);});s.appendChild(b);
+  incUI={i:i,sb:sb,b:b};
+  var note=document.createElement("p");note.className="note";
+  note.textContent="Το αυτόματο ποσό είναι όσα λείπουν από τον αποταμιευτικό για να πιάσει τον στόχο. Όταν βγαίνει μηδέν, δεν χρειάζεται καμία μεταφορά.";
+  s.appendChild(note);
+}
+
+function updateInc(c){
+  if(!incUI)return;
+  incUI.sb.textContent=data.transfer===null?"Αυτόματα: "+f(c.need):"Δικό σου ποσό (αυτόματο: "+f(c.need)+")";
+  incUI.b.hidden=(data.transfer===null);
+  if(data.transfer===null&&document.activeElement!==incUI.i)incUI.i.value=c.tr;
+}
+
+function render(){
+  if(!data){el("app").hidden=true;el("empty").hidden=false;return;}
+  el("empty").hidden=true;el("app").hidden=false;
+  var c=calc();
+  el("h-mis").textContent=f(c.misEnd);el("h-mis-s").textContent="διαθέσιμο στο τέλος του μήνα";
+  el("h-apo").textContent=f(c.apoNet);el("h-apo-s").textContent="στόχος "+f(data.target);
+  renderSummary(c);renderRows();renderInputs(c);
+}
+
+function touch(structural){
+  scheduleSave();
+  var c=calc();
+  el("h-mis").textContent=f(c.misEnd);el("h-apo").textContent=f(c.apoNet);
+  el("h-apo-s").textContent="στόχος "+f(data.target);
+  renderSummary(c);
+  if(structural){renderRows();renderInputs(c);}
+  else{updateTotals();updateInc(c);}
+}
+
+function pick(id){
+  if(dirty)persist();
+  cur=id;open={};
+  if(months[id]){data=norm(months[id]);render();return;}
+  var prev=Object.keys(months).filter(function(k){return k<id;}).sort().pop();
+  if(prev){data=norm(months[prev]);render();scheduleSave();
+    el("saving").textContent="Αντιγράφηκε από "+label(prev);
+    setTimeout(function(){if(el("saving").textContent.indexOf("Αντιγράφηκε")===0)el("saving").textContent="";},2600);
+  }else{data=null;render();}
+}
+
+function fillMonths(){
+  var s=el("month"),now=new Date(),y0=now.getFullYear()-1,list=[];
+  for(var y=y0;y<=y0+2;y++)for(var m=1;m<=12;m++)list.push(y+"-"+(m<10?"0":"")+m);
+  Object.keys(months).forEach(function(k){if(list.indexOf(k)<0)list.push(k);});
+  list.sort();
+  var keep=s.value;s.textContent="";
+  list.forEach(function(id){var o=document.createElement("option");o.value=id;o.textContent=label(id);s.appendChild(o);});
+  s.value=keep||(now.getFullYear()+"-"+(now.getMonth()<9?"0":"")+(now.getMonth()+1));
+}
+
+el("month").addEventListener("change",function(){pick(el("month").value);});
+el("addRow").addEventListener("click",function(){
+  if(!data)return;
+  var id="r_"+Date.now().toString(36);
+  data.rows.push({id:id,desc:"Νέο έξοδο",cat:"Λοιπά",type:"Μεταβλητό",amount:0,payer:"Εγώ",account:"Μισθοδοσίας"});
+  open[id]=true;touch(true);
+  var n=el("n_"+id);if(n){n.focus();n.select();}
+});
+el("create").addEventListener("click",function(){data=blank();render();scheduleSave();});
+["sum","exp","inc"].forEach(function(k){
+  el("t-"+k).addEventListener("click",function(){
+    ["sum","exp","inc"].forEach(function(j){
+      el("t-"+j).setAttribute("aria-selected",String(j===k));el("p-"+j).hidden=(j!==k);});
+  });
+});
+
+el("export").addEventListener("click",function(){
+  if(dirty)persist();
+  var blob=new Blob([JSON.stringify({v:1,months:months},null,2)],{type:"application/json"});
+  var u=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=u;a.download="tameio-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(u);},1000);
+});
+el("importFile").addEventListener("change",function(ev){
+  var file=ev.target.files&&ev.target.files[0];if(!file)return;
+  var fr=new FileReader();
+  fr.onload=function(){
+    try{
+      var o=JSON.parse(fr.result);
+      if(!o||!o.months)throw 0;
+      Object.keys(o.months).forEach(function(k){if(/^\d{4}-\d{2}$/.test(k))months[k]=norm(o.months[k]);});
+      persist();fillMonths();cur=null;pick(el("month").value);
+      el("dataNote").textContent="Τα δεδομένα εισήχθησαν. Μήνες στη συσκευή: "+Object.keys(months).length+".";
+    }catch(e){el("dataNote").textContent="Το αρχείο δεν διαβάστηκε. Διάλεξε αρχείο εξαγωγής από αυτή την εφαρμογή.";}
+    ev.target.value="";
+  };
+  fr.readAsText(file);
+});
+
+var deferred=null;
+window.addEventListener("beforeinstallprompt",function(e){
+  e.preventDefault();deferred=e;el("install").hidden=false;});
+el("install").addEventListener("click",function(){
+  if(!deferred)return;deferred.prompt();deferred=null;el("install").hidden=true;});
+window.addEventListener("beforeunload",function(){if(dirty)persist();});
+document.addEventListener("visibilitychange",function(){if(document.hidden&&dirty)persist();});
+
+el("gSignin").addEventListener("click",function(){drive.connect();});
+el("gSync").addEventListener("click",function(){drive.sync();});
+el("gSignout").addEventListener("click",function(){drive.disconnect();});
+window.addEventListener("online",function(){drive.schedule();});
+
+months=load();
+fillMonths();
+pick(el("month").value);
+drive.init();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});
+}
+})();
+</script>
+</body>
+</html>
